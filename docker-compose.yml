@@ -3,6 +3,7 @@ version: '3.8'
 services:
   web:
     build: ./innotter
+    command: >
     volumes:
       - ./innotter/:/usr/src/innotter/
     ports:
