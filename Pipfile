@@ -8,6 +8,10 @@ django = "*"
 djangorestframework = "*"
 python-dotenv = "*"
 isort = "*"
+env = "*"
+environs = "*"
+djangorestframework-simplejwt = "*"
+djoser = "*"
 
 [dev-packages]
 

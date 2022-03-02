@@ -1,3 +1,4 @@
+from django.contrib.auth.models import User
 from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 
@@ -20,10 +21,13 @@ class Page(Name):
     description = models.TextField()
     tags = models.ManyToManyField('innotterapp.Tag', related_name='pages')
     owner = models.ForeignKey('authentication.User', on_delete=models.CASCADE, related_name='pages')
+    # owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='pages')
     followers = models.ManyToManyField('authentication.User', related_name='follows')
+    # followers = models.ManyToManyField(User, related_name='follows')
     image = models.URLField(null=True, blank=True)
     is_private = models.BooleanField(default=False)
     follow_requests = models.ManyToManyField('authentication.User', related_name='requests')
+    # follow_requests = models.ManyToManyField(User, related_name='requests')
     unblock_date = models.DateTimeField(null=True, blank=True)
 
 
