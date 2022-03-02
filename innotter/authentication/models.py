@@ -1,6 +1,10 @@
-from django.contrib.auth.models import BaseUserManager, AbstractUser
+from datetime import datetime, timedelta
 
+import jwt
+from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
+
+from innotter import settings
 
 
 class UserManager(BaseUserManager):
@@ -35,6 +39,7 @@ class User(AbstractUser):
         USER = 'user'
         MODERATOR = 'moderator'
         ADMIN = 'admin'
+
     username = models.CharField(db_index=True, max_length=255, unique=True)
     email = models.EmailField(unique=True)
     image_s3_path = models.CharField(max_length=200, null=True, blank=True)
@@ -53,3 +58,24 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.email
+
+    @property
+    def token(self):
+        return self._generate_jwt_token()
+
+    def get_full_name(self):
+        return self.username
+
+    def get_short_name(self):
+        return self.username
+
+    def _generate_jwt_token(self):
+        dt = datetime.now() + timedelta(days=10)
+
+        token = jwt.encode({
+            'id': self.pk,
+            'exp': int(dt.strftime('%s'))
+        }, settings.SECRET_KEY, algorithm='HS256')
+
+        return token.decode('utf-8')
+        # return token

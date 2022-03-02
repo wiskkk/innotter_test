@@ -1,7 +1,8 @@
 import json
+import logging
+import os
 
 import jwt
-import logging
 from django.http import HttpResponse
 from django.utils.deprecation import MiddlewareMixin
 
@@ -9,10 +10,7 @@ from django.utils.deprecation import MiddlewareMixin
 
 logger = logging.getLogger(__name__)
 
-# Get JWT secret key
-env = Env()
-env.read_env()
-SECRET_KEY = env("JWT_SECRET_KEY")
+SECRET_KEY = os.environ.get("JWT_SECRET_KEY")
 
 
 def create_response(request_id, code, message):
@@ -46,16 +44,16 @@ class CustomMiddleware(MiddlewareMixin):
                 logger.info(f"Request received from user - {userid}, company - {company_id}")
                 return None
             except jwt.ExpiredSignatureError:
-                response = create_response("", 4001, {"message": "Authentication token has expired"})
+                response = create_response("", 401, {"message": "Authentication token has expired"})
                 logger.info(f"Response {response}")
                 return HttpResponse(json.dumps(response), status=401)
             except (jwt.DecodeError, jwt.InvalidTokenError):
-                response = create_response("", 4001, {"message": "Authorization has failed, Please send valid token."})
+                response = create_response("", 401, {"message": "Authorization has failed, Please send valid token."})
                 logger.info(f"Response {response}")
                 return HttpResponse(json.dumps(response), status=401)
         else:
             response = create_response(
-                "", 4001, {"message": "Authorization not found, Please send valid token in headers"}
+                "", 401, {"message": "Authorization not found, Please send valid token in headers"}
             )
             logger.info(f"Response {response}")
             return HttpResponse(json.dumps(response), status=401)
