@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 import jwt
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
+
 from innotter import settings
 
 
@@ -50,28 +51,28 @@ class User(AbstractUser):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username']
+    USERNAME_FIELD = 'username'
+    REQUIRED_FIELDS = []
 
     objects = UserManager()
 
     def __str__(self):
         return self.email
 
-    @property
-    def token(self):
-        return self._generate_jwt_token()
-
-    def get_username(self):
-        return self.username
-
-    def _generate_jwt_token(self):
-        dt = datetime.now() + timedelta(days=1)
-
-        token = jwt.encode({
-            'id': self.pk,
-            'exp': int(dt.strftime('%s'))
-        }, settings.SECRET_KEY, algorithm='HS256')
-
-        # return token.decode('utf-8')
-        return token
+    # @property
+    # def token(self):
+    #     return self._generate_jwt_token()
+    #
+    # def get_username(self):
+    #     return self.username
+    #
+    # def _generate_jwt_token(self):
+    #     dt = datetime.now() + timedelta(days=1)
+    #
+    #     token = jwt.encode({
+    #         'id': self.pk,
+    #         'exp': int(dt.strftime('%s'))
+    #     }, settings.SECRET_KEY, algorithm='HS256')
+    #
+    #     # return token.decode('utf-8')
+    #     return token

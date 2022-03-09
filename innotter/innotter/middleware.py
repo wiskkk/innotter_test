@@ -34,10 +34,11 @@ class CustomMiddleware(MiddlewareMixin):
 
         jwt_token = request.headers.get('authorization', None)
         logger.info(f"request received for endpoint {str(request.path)}")
-
         # If token Exists
         if jwt_token:
             try:
+                print('test')
+
                 payload = jwt.decode(jwt_token, SECRET_KEY, algorithms=['HS256'])
                 userid = payload['user_id']
                 company_id = payload['company_id'] if 'company_id' in payload else None

@@ -1,22 +1,7 @@
-from django.core import exceptions
-from rest_framework import serializers
-from .models import Page, Post, Tag
 from authentication.models import User
+from rest_framework import serializers
 
-
-class TagsField(serializers.Field):
-
-    def to_representation(self, value):
-        return value
-
-    def to_internal_value(self, data):
-        return data
-
-
-class FollowersSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = 'username'
+from .models import Page, Post, Tag
 
 
 class TagsSerializer(serializers.ModelSerializer):
@@ -30,22 +15,14 @@ class PageSerializer(serializers.ModelSerializer):
     owner_email = serializers.ReadOnlyField(source='owner.email')
     tags = serializers.SlugRelatedField(
         many=True, slug_field='name', queryset=Tag.objects.all())
-
-    # tags = TagsSerializer(read_only=True, many=True)
-    # tags = TagsField(source="get_tags")
-    # followers = serializers.StringRelatedField(many=True)
-
-    # def create(self, validated_data):
-    #     tags = validated_data.pop("get_tags")
-    #     page = Page.objects.create(**validated_data)
-    #     page.tags.add(*tags)
-    #
-    #     return page
+    followers = serializers.SlugRelatedField(
+        many=True, slug_field='name', queryset=User.objects.all())
+    following = serializers.SlugRelatedField(
+        many=True, slug_field='name', queryset=User.objects.all())
 
     class Meta:
         model = Page
-        exclude = ('unblock_date',)
-        # fields = ('id', 'name', 'owner', 'owner_email', 'uuid', 'description', 'tags', 'image', 'is_private')
+        exclude = ('unblock_date', 'follow_requests')
 
     def to_internal_value(self, data):
         for tag_name in data.get('tags', []):
@@ -54,6 +31,27 @@ class PageSerializer(serializers.ModelSerializer):
 
 
 class PostSerializer(serializers.ModelSerializer):
+    page = serializers.ReadOnlyField(source='page.name')
+
     class Meta:
         model = Post
         fields = '__all__'
+
+
+# class EachUserSerializer(serializers.ModelSerializer):
+#     name = serializers.CharField(source='user.name')
+#
+#     class Meta:
+#         model = Page
+#         fields = ('id', 'name')
+#         read_only_fields = ('id', 'name')
+#
+#
+# class FollowerSerializer(serializers.ModelSerializer):
+#     followers = EachUserSerializer(many=True, read_only=True)
+#     following = EachUserSerializer(many=True, read_only=True)
+#
+#     class Meta:
+#         model = Page
+#         fields = ('followers', 'following')
+#         read_only_fields = ('followers', 'following')
