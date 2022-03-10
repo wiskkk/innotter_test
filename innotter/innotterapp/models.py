@@ -1,8 +1,8 @@
 import uuid
 
 from authentication.models import User
-from content_interaction.models import Like
-from django.contrib.contenttypes.fields import GenericRelation
+# from content_interaction.models import Like
+from django.contrib.contenttypes.fields import GenericRelation, GenericForeignKey
 from django.db import models
 
 
@@ -46,7 +46,43 @@ class Page(Name):
 class Post(models.Model):
     page = models.ForeignKey(Page, on_delete=models.CASCADE, related_name='posts')
     content = models.CharField(max_length=255)
-    likes = GenericRelation(Like)
-    reply_to = models.ForeignKey('innotterapp.Post', on_delete=models.SET_NULL, null=True, related_name='replies')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    like = models.ManyToManyField('authentication.User', blank=True, related_name='likes', symmetrical=False)
+
+    # likes = GenericRelation(Like)
+    # reply_to = models.ForeignKey('innotterapp.Post', on_delete=models.SET_NULL, null=True, related_name='replies')
+
+
+class Reply(models.Model):
+    owner = models.ForeignKey('authentication.User', related_name='replies', on_delete=models.CASCADE)
+    reply_text = models.TextField(max_length=255)
+    parent = models.ForeignKey(
+        'self', verbose_name="parent", on_delete=models.SET_NULL, blank=True, null=True, related_name='children'
+    )
+    posts = models.ForeignKey(Post, verbose_name="post", on_delete=models.CASCADE, related_name="replies")
+
+    def __str__(self):
+        return self.reply_text
+
+# class Reply(models.Model):
+#     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='comments')
+#     owner = models.ForeignKey('authentication.User', related_name='replies', on_delete=models.CASCADE)
+#     reply_text = models.TextField(max_length=255)
+#     created_at = models.DateTimeField(auto_now_add=True)
+#     parent = models.ForeignKey('self', null=True, blank=True, on_delete=models.SET_NULL)
+#
+#     class Meta:
+#         ordering = ('-created_at',)
+#
+#     def __str__(self):
+#         return f'Comment by {self.owner.username} on {self.post}'
+#
+#     def children(self):
+#         return Reply.objects.filter(parent=self)
+#
+#     @property
+#     def is_parent(self):
+#         if self.parent is not None:
+#             return False
+#         return True

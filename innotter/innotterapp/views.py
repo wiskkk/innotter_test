@@ -1,11 +1,13 @@
 from django.http import Http404
-from rest_framework import permissions, status, viewsets, generics
+from django.views.decorators.csrf import csrf_exempt
+from rest_framework import generics, permissions, status, viewsets
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import Page, Post, Tag
-from .serializers import (PageSerializer, PostSerializer,
-                          TagsSerializer)  # FollowerSerializer,
+from .models import Page, Post, Reply, Tag
+from .serializers import PageSerializer, PostLikeListSerializer  # FollowerSerializer,
+from .serializers import PostSerializer, ReplySerializer, TagsSerializer
 
 
 class PermissionMixin(viewsets.ModelViewSet):
@@ -47,7 +49,6 @@ class PostViewSet(PermissionMixin):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
     def perform_create(self, serializer):
-        print(self.request.user.pages.first())
         serializer.save(page=self.request.user.pages.first())
 
     def partial_update(self, request, *args, **kwargs):
@@ -56,6 +57,14 @@ class PostViewSet(PermissionMixin):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
+
+
+class RepliesViewSet(PermissionMixin):
+    serializer_class = ReplySerializer
+    queryset = Reply.objects.all()
+
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
 
 
 class TagViewSet(viewsets.ModelViewSet):
@@ -75,6 +84,42 @@ class FollowView(viewsets.ViewSet):
     def unfollow(self, request, pk):
         # your unfollow code
         return Response({'message': 'you are no longer following him'}, status=status.HTTP_200_OK)
+
+
+# class LikeUnlikeView(APIView):
+#     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+#
+#     def post(self, request, pk):
+#         post = Post.objects.get(pk=pk)
+#         if post.like.filter(pk=request.user.pk).exists():
+#             post.like.remove(request.user)
+#         else:
+#             post.like.add(request.user)
+#         return Response({'message': 'you are like this'}, status=status.HTTP_200_OK)
+
+class LikeUnlikeViewSet(viewsets.ModelViewSet):
+    queryset = Post.objects.all()
+    serializer_class = PostSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get_queryset(self):
+        queryset = Post.objects.filter(like__username=self.request.user.username)
+        return queryset
+
+    @action(detail=True, methods=['post'])
+    def liked(self, request, pk):
+        post = Post.objects.get(pk=pk)
+        if post.like.filter(pk=request.user.pk).exists():
+            post.like.remove(request.user)
+        else:
+            post.like.add(request.user)
+        return Response({'message': 'you are like this'}, status=status.HTTP_200_OK)
+
+
+class LikeListApiView(viewsets.ModelViewSet):
+    queryset = Post.objects.all()
+    serializer_class = PostLikeListSerializer
+    permission_classes = (permissions.IsAuthenticated,)
 
 # class FollowUnfollowView(APIView):
 #     permission_classes = (permissions.AllowAny,)
