@@ -1,13 +1,13 @@
 from django.http import Http404
-from django.views.decorators.csrf import csrf_exempt
-from rest_framework import generics, permissions, status, viewsets
+from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .models import Page, Post, Reply, Tag
-from .serializers import PageSerializer, PostLikeListSerializer  # FollowerSerializer,
-from .serializers import PostSerializer, ReplySerializer, TagsSerializer
+from .serializers import (FollowerSerializer, PageSerializer,
+                          PostLikeListSerializer, PostSerializer,
+                          ReplySerializer, TagsSerializer)
 
 
 class PermissionMixin(viewsets.ModelViewSet):
@@ -72,31 +72,6 @@ class TagViewSet(viewsets.ModelViewSet):
     queryset = Tag.objects.all()
 
 
-class FollowView(viewsets.ViewSet):
-    queryset = Page.objects
-
-    def follow(self, request, pk):
-        own_page = request.user.pages.first()  # or your queryset to get
-        following_page = Page.objects.get(id=pk)
-        own_page.following.add(following_page)  # and .remove() for unfollow
-        return Response({'message': 'now you are following'}, status=status.HTTP_200_OK)
-
-    def unfollow(self, request, pk):
-        # your unfollow code
-        return Response({'message': 'you are no longer following him'}, status=status.HTTP_200_OK)
-
-
-# class LikeUnlikeView(APIView):
-#     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-#
-#     def post(self, request, pk):
-#         post = Post.objects.get(pk=pk)
-#         if post.like.filter(pk=request.user.pk).exists():
-#             post.like.remove(request.user)
-#         else:
-#             post.like.add(request.user)
-#         return Response({'message': 'you are like this'}, status=status.HTTP_200_OK)
-
 class LikeUnlikeViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
@@ -116,13 +91,15 @@ class LikeUnlikeViewSet(viewsets.ModelViewSet):
         return Response({'message': 'you are like this'}, status=status.HTTP_200_OK)
 
 
-class LikeListApiView(viewsets.ModelViewSet):
+class LikeListApiViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
     serializer_class = PostLikeListSerializer
     permission_classes = (permissions.IsAuthenticated,)
 
+
+#
 # class FollowUnfollowView(APIView):
-#     permission_classes = (permissions.AllowAny,)
+#     permission_classes = (permissions.IsAuthenticated,)
 #
 #     def current_page(self):
 #         try:
@@ -132,20 +109,18 @@ class LikeListApiView(viewsets.ModelViewSet):
 #
 #     def other_page(self, pk):
 #         try:
-#             print(Page.objects.get(id=self.request.data.id))
 #             return Page.objects.get(id=pk)
 #         except Page.DoesNotExist:
 #             raise Http404
 #
 #     def post(self, request, format=None):
-#         print(request.data)
 #         pk = request.data.get('id')  # Here pk is opposite user's profile ID
 #         req_type = request.data.get('type')
 #         current_page = self.current_page()
 #         other_page = self.other_page(pk)
 #         if req_type == 'follow':
-#             if other_page.private_account:
-#                 other_page.panding_request.add(current_page)
+#             if other_page.is_private:
+#                 other_page.follow_requests.add(current_page)
 #                 return Response({"Requested": "Follow request has been send!!"}, status=status.HTTP_200_OK)
 #             else:
 #                 current_page.following.add(other_page)
@@ -155,11 +130,11 @@ class LikeListApiView(viewsets.ModelViewSet):
 #         elif req_type == 'accept':
 #             current_page.followers.add(other_page)
 #             other_page.following.add(current_page)
-#             current_page.panding_request.remove(other_page)
+#             current_page.follow_requests.remove(other_page)
 #             return Response({"Accepted": "Follow request successfuly accespted!!"}, status=status.HTTP_200_OK)
 #
 #         elif req_type == 'decline':
-#             current_page.panding_request.remove(other_page)
+#             current_page.follow_requests.remove(other_page)
 #             return Response({"Decline": "Follow request successfully declined!!"}, status=status.HTTP_200_OK)
 #
 #         elif req_type == 'unfollow':
@@ -172,12 +147,93 @@ class LikeListApiView(viewsets.ModelViewSet):
 #             other_page.following.remove(current_page)
 #             return Response({"Remove Success": "Successfuly removed your follower!!"}, status=status.HTTP_200_OK)
 #
-#     # Here we can fetch followers,following detail and blocked user,pending request,sended request..
-#
 #     def patch(self, request, format=None):
 #
-#         req_type = request.data.get('type')
-#
+#         req_type = self.request.data.get('type')
 #         if req_type == 'follow_detail':
 #             serializer = FollowerSerializer(self.current_page())
 #             return Response({"data": serializer.data}, status=status.HTTP_200_OK)
+
+class FollowUnfollowViewSet(viewsets.ModelViewSet):
+    permission_classes = (permissions.IsAuthenticated,)
+    queryset = Page.objects.all()
+    serializer_class = PageSerializer
+
+    # def current_page(self):
+    #     try:
+    #         return Page.objects.get(owner=self.request.user)
+    #     except Page.DoesNotExist:
+    #         raise Http404
+    #
+    # def other_page(self, pk):
+    #     try:
+    #         return Page.objects.get(id=pk)
+    #     except Page.DoesNotExist:
+    #         raise Http404
+
+    @action(detail=True, methods=['post'])
+    def follow(self, request, pk, format=None):
+        # pk = request.data.get('id')  # Here pk is opposite user's profile ID
+        # current_page = self.current_page()
+        # other_page = self.other_page(pk)
+        current_page = Page.objects.get(owner=self.request.user)
+        other_page = Page.objects.get(id=pk)
+        if other_page.is_private:
+            other_page.follow_requests.add(current_page)
+            return Response({"Requested": "Follow request has been send!!"}, status=status.HTTP_200_OK)
+        else:
+            current_page.following.add(other_page)
+            other_page.followers.add(current_page)
+            return Response({"Following": "Following success!!"}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'])
+    def accept(self, request, pk, format=None):
+        # pk = request.data.get('id')  # Here pk is opposite user's profile ID
+        # current_page = self.current_page()
+        # other_page = self.other_page(pk)
+        # current_page.followers.add(other_page)
+        # other_page.following.add(current_page)
+
+        current_page = Page.objects.get(owner=self.request.user)
+        other_page = Page.objects.get(id=pk)
+        current_page.follow_requests.remove(other_page)
+        return Response({"Accepted": "Follow request successfuly accespted!!"}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'])
+    def decline(self, request, pk, format=None):
+        # pk = request.data.get('id')  # Here pk is opposite user's profile ID
+        # current_page = self.current_page()
+        # other_page = self.other_page(pk)
+
+        current_page = Page.objects.get(owner=self.request.user)
+        other_page = Page.objects.get(id=pk)
+        current_page.follow_requests.remove(other_page)
+        return Response({"Decline": "Follow request successfully declined!!"}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'])
+    def unfollow(self, request, pk, format=None):
+        # pk = request.data.get('id')  # Here pk is opposite user's profile ID
+        # current_page = self.current_page()
+        # other_page = self.other_page(pk)
+
+        current_page = Page.objects.get(owner=self.request.user)
+        other_page = Page.objects.get(id=pk)
+        other_page.followers.remove(current_page)
+        return Response({"Unfollow": "Unfollow success!!"}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'])
+    def remove(self, request, pk, format=None):
+        # pk = request.data.get('id')  # Here pk is op
+
+        current_page = Page.objects.get(owner=self.request.user)
+        other_page = Page.objects.get(id=pk)
+        current_page.followers.remove(other_page)
+        other_page.following.remove(current_page)
+        return Response({"Remove Success": "Successfuly removed your follower!!"}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['patch'])
+    def follow_detail(self, request, format=None):
+
+        current_page = Page.objects.get(owner=self.request.user)
+        serializer = FollowerSerializer(current_page())
+        return Response({"data": serializer.data}, status=status.HTTP_200_OK)
