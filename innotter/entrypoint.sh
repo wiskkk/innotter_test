@@ -10,7 +10,7 @@ then
 
     echo "PostgreSQL started"
 fi
-
+python manage.py makemigrations
 python manage.py migrate
 
 sh -c "python3 manage.py migrate &&

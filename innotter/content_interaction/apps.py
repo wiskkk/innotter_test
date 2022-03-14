@@ -1,6 +1,6 @@
 from django.apps import AppConfig
 
 
-class InnotterappConfig(AppConfig):
+class ContentInteractionConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'innotterapp'
+    name = 'content_interaction'
