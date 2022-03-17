@@ -12,6 +12,9 @@ env = "*"
 environs = "*"
 djangorestframework-simplejwt = "*"
 djoser = "*"
+redis = "==4.1.2"
+boto3 = "*"
+celery = "==4.4.7"
 
 [dev-packages]
 
