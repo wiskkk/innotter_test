@@ -49,8 +49,8 @@ class PostViewSet(PermissionMixin):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
     def perform_create(self, serializer):
-        eml = (self.request.user.pages.first().followers.all())
-        for i in eml:
+        email = (self.request.user.pages.first().followers.all())
+        for i in email:
             send_plain_email.delay(owner=self.request.user.email, email=i.owner.email)
         serializer.save(page=self.request.user.pages.first())
 

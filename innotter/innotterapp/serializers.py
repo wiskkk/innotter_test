@@ -1,7 +1,11 @@
-from authentication.models import User
+# from authentication.models import User
 from rest_framework import serializers
 
 from innotterapp.models import Page, Post, Reply, Tag
+
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 
 class TagsSerializer(serializers.ModelSerializer):
