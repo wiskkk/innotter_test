@@ -12,6 +12,7 @@ env = "*"
 environs = "*"
 djangorestframework-simplejwt = "*"
 djoser = "*"
+django-storages = "*"
 
 [dev-packages]
 
