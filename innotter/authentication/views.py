@@ -1,5 +1,6 @@
 from rest_framework import generics
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 from .models import User
@@ -23,6 +24,12 @@ class UpdateProfileView(generics.UpdateAPIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = UpdateUserSerializer
 
+    def partial_update(self, request, *args, **kwargs):
+        instance = self.queryset.get(pk=kwargs.get('pk'))
+        serializer = self.serializer_class(instance, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
 
 # class PermissionMixin(viewsets.ModelViewSet):
 #
