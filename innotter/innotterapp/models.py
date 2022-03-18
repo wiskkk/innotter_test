@@ -1,7 +1,12 @@
 import uuid
 
-from authentication.models import User
 from django.db import models
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
+# from authentication.models import User
+
 
 
 class Name(models.Model):
@@ -16,7 +21,7 @@ class Tag(Name):
 
 
 class Page(Name):
-    owner = models.ForeignKey('authentication.User', on_delete=models.CASCADE, related_name='pages')
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='pages')
     uuid = models.CharField(max_length=32, unique=True, default=uuid.uuid4().hex)
     description = models.TextField()
     tags = models.ManyToManyField('innotterapp.Tag', related_name='pages', blank=True)
@@ -37,11 +42,11 @@ class Post(models.Model):
     content = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    like = models.ManyToManyField('authentication.User', blank=True, related_name='likes', symmetrical=False)
+    like = models.ManyToManyField(User, blank=True, related_name='likes', symmetrical=False)
 
 
 class Reply(models.Model):
-    owner = models.ForeignKey('authentication.User', related_name='replies', on_delete=models.CASCADE)
+    owner = models.ForeignKey(User, related_name='replies', on_delete=models.CASCADE)
     reply_text = models.TextField(max_length=255)
     posts = models.ForeignKey(Post, verbose_name="post", on_delete=models.CASCADE, related_name="replies")
 

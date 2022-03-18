@@ -1,8 +1,9 @@
 from django.urls.conf import include, path
+from rest_framework.routers import DefaultRouter
+
 from innotterapp.views import (FollowUnfollowViewSet, LikeUnlikeViewSet,
                                PageViewSet, PostViewSet, RepliesViewSet,
                                TagViewSet)
-from rest_framework.routers import DefaultRouter
 
 router = DefaultRouter()
 router.register(r'pages', PageViewSet, basename='page')

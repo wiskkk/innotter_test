@@ -1,6 +1,11 @@
-from authentication.models import User
-from innotterapp.models import Page, Post, Reply, Tag
+# from authentication.models import User
 from rest_framework import serializers
+
+from innotterapp.models import Page, Post, Reply, Tag
+
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 
 class TagsSerializer(serializers.ModelSerializer):
@@ -35,6 +40,7 @@ class PageSerializer(serializers.ModelSerializer):
         many=True, slug_field='name', queryset=Tag.objects.all())
     followers = serializers.SlugRelatedField(
         many=True, slug_field='name', queryset=User.objects.all())
+    # followers = FollowerSerializer(many=True, read_only=True)
     following = serializers.SlugRelatedField(
         many=True, slug_field='name', queryset=User.objects.all())
 

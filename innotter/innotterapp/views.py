@@ -2,11 +2,11 @@ from django.shortcuts import get_object_or_404
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-
 from .models import Page, Post, Reply, Tag
 from .serializers import (FollowerSerializer, PageSerializer,
                           PostLikeListSerializer, PostSerializer,
                           ReplySerializer, TagsSerializer)
+from .tasks import send_plain_email, verify_email_identity
 
 
 class PermissionMixin(viewsets.ModelViewSet):
@@ -30,6 +30,7 @@ class PageViewSet(PermissionMixin):
     queryset = Page.objects.all()
 
     def perform_create(self, serializer):
+        verify_email_identity(email=self.request.user.email)
         serializer.save(owner=self.request.user)
         # serializer.save(owner_email=self.request.user.email)
 
@@ -48,6 +49,9 @@ class PostViewSet(PermissionMixin):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
     def perform_create(self, serializer):
+        email = (self.request.user.pages.first().followers.all())
+        for i in email:
+            send_plain_email.delay(owner=self.request.user.email, email=i.owner.email)
         serializer.save(page=self.request.user.pages.first())
 
     def partial_update(self, request, *args, **kwargs):
