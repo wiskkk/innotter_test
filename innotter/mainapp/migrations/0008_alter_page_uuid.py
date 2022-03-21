@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('innotterapp', '0007_alter_page_follow_requests_alter_page_followers_and_more'),
+        ('mainapp', '0007_alter_page_follow_requests_alter_page_followers_and_more'),
     ]
 
     operations = [

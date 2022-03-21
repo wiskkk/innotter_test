@@ -8,7 +8,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('innotterapp', '0005_alter_page_uuid'),
+        ('mainapp', '0005_alter_page_uuid'),
     ]
 
     operations = [

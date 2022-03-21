@@ -1,6 +1,6 @@
 from django_filters.rest_framework import FilterSet, filters
 
-from innotterapp.models import Page
+from mainapp.models import Page
 
 
 class PageFilterSet(FilterSet):

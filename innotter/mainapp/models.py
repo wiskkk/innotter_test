@@ -19,14 +19,14 @@ class Page(Name):
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='pages')
     uuid = models.CharField(max_length=32, unique=True, blank=True)
     description = models.TextField()
-    tags = models.ManyToManyField('innotterapp.Tag', related_name='pages', blank=True)
+    tags = models.ManyToManyField('mainapp.Tag', related_name='pages', blank=True)
     image = models.URLField(null=True, blank=True)
     is_private = models.BooleanField(default=False)
-    followers = models.ManyToManyField('innotterapp.Page', blank=True, related_name='user_followers',
+    followers = models.ManyToManyField('mainapp.Page', blank=True, related_name='user_followers',
                                        symmetrical=False)
-    following = models.ManyToManyField('innotterapp.Page', blank=True, related_name='user_following',
+    following = models.ManyToManyField('mainapp.Page', blank=True, related_name='user_following',
                                        symmetrical=False)
-    follow_requests = models.ManyToManyField('innotterapp.Page', blank=True, related_name='followRequest',
+    follow_requests = models.ManyToManyField('mainapp.Page', blank=True, related_name='followRequest',
                                              symmetrical=False)
     created_date = models.DateTimeField(auto_now_add=True)
     unblock_date = models.DateTimeField(null=True, blank=True)
