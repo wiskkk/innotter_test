@@ -22,7 +22,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('auth/', include('authentication.urls')),
     path('api/', include('innotterapp.urls')),
-    # path('inter/', include('content_interaction.urls'))
     # path('', include(router.urls)),
 ]
 

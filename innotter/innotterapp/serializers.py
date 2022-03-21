@@ -1,4 +1,4 @@
-# from authentication.models import User
+import uuid
 from rest_framework import serializers
 
 from innotterapp.models import Page, Post, Reply, Tag
@@ -36,11 +36,11 @@ class FollowerSerializer(serializers.ModelSerializer):
 class PageSerializer(serializers.ModelSerializer):
     owner = serializers.ReadOnlyField(source='owner.username')
     owner_email = serializers.ReadOnlyField(source='owner.email')
+    uuid = serializers.UUIDField(default=uuid.uuid4().hex)
     tags = serializers.SlugRelatedField(
         many=True, slug_field='name', queryset=Tag.objects.all())
     followers = serializers.SlugRelatedField(
         many=True, slug_field='name', queryset=User.objects.all())
-    # followers = FollowerSerializer(many=True, read_only=True)
     following = serializers.SlugRelatedField(
         many=True, slug_field='name', queryset=User.objects.all())
 
@@ -92,3 +92,6 @@ class PostLikeListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
         fields = ['like', ]
+
+
+

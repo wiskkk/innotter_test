@@ -1,12 +1,7 @@
-import uuid
-
 from django.db import models
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
-
-# from authentication.models import User
-
 
 
 class Name(models.Model):
@@ -22,7 +17,7 @@ class Tag(Name):
 
 class Page(Name):
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='pages')
-    uuid = models.CharField(max_length=32, unique=True, default=uuid.uuid4().hex)
+    uuid = models.CharField(max_length=32, unique=True, blank=True)
     description = models.TextField()
     tags = models.ManyToManyField('innotterapp.Tag', related_name='pages', blank=True)
     image = models.URLField(null=True, blank=True)
