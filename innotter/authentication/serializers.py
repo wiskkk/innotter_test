@@ -31,7 +31,7 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('username', 'password', 'password2', 'email')
+        fields = ('username', 'password', 'password2', 'email', 'image_s3_path')
 
     def validate(self, attrs):
         if attrs['password'] != attrs['password2']:
@@ -51,34 +51,33 @@ class RegisterSerializer(serializers.ModelSerializer):
         return user
 
 
-class UpdateUserSerializer(serializers.ModelSerializer):
-    email = serializers.EmailField(required=True)
-
+class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('username', 'email')
+        fields = ('id', 'username', 'email', 'image_s3_path',)
 
-    # def validate_email(self, value):
-    #     user = self.context['request'].user
-    #     if User.objects.exclude(pk=user.pk).filter(email=value).exists():
-    #         raise serializers.ValidationError({"email": "This email is already in use."})
-    #     return value
-    #
-    # def validate_username(self, value):
-    #     user = self.context['request'].user
-    #     if User.objects.exclude(pk=user.pk).filter(username=value).exists():
-    #         raise serializers.ValidationError({"username": "This username is already in use."})
-    #     return value
 
-    # def update(self, instance, validated_data):
-    #     user = self.context['request'].user
-    #     print('test')
-    #     if user.pk != instance.pk:
-    #         raise serializers.ValidationError({"authorize": "You dont have permission for this user."})
-    #
-    #     instance.email = validated_data['email']
-    #     instance.username = validated_data['username']
-    #
-    #     instance.save()
-    #
-    #     return instance
+class UpdateUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('id', 'username', 'email', 'image_s3_path',)
+
+    def validate_email(self, value):
+        user = self.context['request'].user
+        if User.objects.exclude(pk=user.pk).filter(email=value).exists():
+            raise serializers.ValidationError({"email": "This email is already in use."})
+        return value
+
+    def validate_username(self, value):
+        user = self.context['request'].user
+        if User.objects.exclude(pk=user.pk).filter(username=value).exists():
+            raise serializers.ValidationError({"username": "This username is already in use."})
+        return value
+
+    def update(self, instance, validated_data):
+        user = self.context['request'].user
+        if user.pk != instance.pk:
+            raise serializers.ValidationError({"authorize": "You dont have permission for this user."})
+        instance.save()
+
+        return instance
