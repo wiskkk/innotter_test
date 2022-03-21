@@ -1,12 +1,18 @@
+from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
-from rest_framework import permissions, status, viewsets
+from rest_framework import permissions, status, viewsets, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
+
+from .filters import PageFilterSet
 from .models import Page, Post, Reply, Tag
 from .serializers import (FollowerSerializer, PageSerializer,
                           PostLikeListSerializer, PostSerializer,
                           ReplySerializer, TagsSerializer)
 from .tasks import send_plain_email, verify_email_identity
+from django_filters.rest_framework import DjangoFilterBackend
+
+User = get_user_model()
 
 
 class PermissionMixin(viewsets.ModelViewSet):
@@ -28,11 +34,13 @@ class PermissionMixin(viewsets.ModelViewSet):
 class PageViewSet(PermissionMixin):
     serializer_class = PageSerializer
     queryset = Page.objects.all()
+    search_fields = ('^name', '=uuid')
+    filter_backends = (DjangoFilterBackend, filters.SearchFilter,)
+    filter_class = PageFilterSet
 
     def perform_create(self, serializer):
         verify_email_identity(email=self.request.user.email)
         serializer.save(owner=self.request.user)
-        # serializer.save(owner_email=self.request.user.email)
 
     def partial_update(self, request, *args, **kwargs):
         instance = self.queryset.get(pk=kwargs.get('pk'))
@@ -152,3 +160,15 @@ class FollowUnfollowViewSet(viewsets.ModelViewSet):
         current_page = get_object_or_404(Page, owner=self.request.user)
         serializer = FollowerSerializer(current_page)
         return Response({"data": serializer.data}, status=status.HTTP_200_OK)
+
+
+class NewsView(viewsets.ViewSet):
+
+    def list(self, request):
+        followers = self.request.user.pages.first().followers.all()
+        follower_posts = []
+        for follower in followers:
+            for follower_post in follower.posts.all():
+                follower_posts.append(follower_post)
+        serializer = PostSerializer(follower_posts, many=True)
+        return Response(serializer.data)

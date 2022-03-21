@@ -21,8 +21,7 @@ from django.urls import include, path
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('auth/', include('authentication.urls')),
-    path('api/', include('innotterapp.urls')),
-    # path('inter/', include('content_interaction.urls'))
+    path('api/', include('mainapp.urls')),
     # path('', include(router.urls)),
 ]
 

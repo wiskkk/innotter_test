@@ -36,10 +36,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'innotterapp',
+    'django_filters',
     'rest_framework',
+    'mainapp',
     'authentication',
-    'content_interaction',
 ]
 
 MIDDLEWARE = [

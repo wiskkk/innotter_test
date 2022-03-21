@@ -6,24 +6,24 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('innotterapp', '0006_page_follow_requests_page_followers_page_following_and_more'),
+        ('mainapp', '0006_page_follow_requests_page_followers_page_following_and_more'),
     ]
 
     operations = [
         migrations.AlterField(
             model_name='page',
             name='follow_requests',
-            field=models.ManyToManyField(blank=True, related_name='followRequest', to='innotterapp.Page'),
+            field=models.ManyToManyField(blank=True, related_name='followRequest', to='mainapp.Page'),
         ),
         migrations.AlterField(
             model_name='page',
             name='followers',
-            field=models.ManyToManyField(blank=True, related_name='user_followers', to='innotterapp.Page'),
+            field=models.ManyToManyField(blank=True, related_name='user_followers', to='mainapp.Page'),
         ),
         migrations.AlterField(
             model_name='page',
             name='following',
-            field=models.ManyToManyField(blank=True, related_name='user_following', to='innotterapp.Page'),
+            field=models.ManyToManyField(blank=True, related_name='user_following', to='mainapp.Page'),
         ),
         migrations.AlterField(
             model_name='page',
