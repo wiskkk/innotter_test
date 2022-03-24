@@ -22,6 +22,20 @@ services:
       - POSTGRES_USER=innotter
       - POSTGRES_PASSWORD=innotter
       - POSTGRES_DB=innotter_dev
+
+  rabbitmq3:
+    container_name: "rabbitmq"
+    image: rabbitmq:3.8-management-alpine
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    ports:
+      - '5672:5672'
+      - '15672:15672'
+    depends_on:
+      - web
+      - celery
+      - db
   redis:
     image: redis:alpine
   celery:
