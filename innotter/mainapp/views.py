@@ -1,16 +1,17 @@
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
-from rest_framework import permissions, status, viewsets, filters
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from .filters import PageFilterSet
 from .models import Page, Post, Reply, Tag
+from .producer import publish
 from .serializers import (FollowerSerializer, PageSerializer,
                           PostLikeListSerializer, PostSerializer,
                           ReplySerializer, TagsSerializer)
 from .tasks import send_plain_email, verify_email_identity
-from django_filters.rest_framework import DjangoFilterBackend
 
 User = get_user_model()
 
@@ -41,12 +42,14 @@ class PageViewSet(PermissionMixin):
     def perform_create(self, serializer):
         verify_email_identity(email=self.request.user.email)
         serializer.save(owner=self.request.user)
+        publish('page_created', serializer.data)
 
     def partial_update(self, request, *args, **kwargs):
         instance = self.queryset.get(pk=kwargs.get('pk'))
         serializer = self.serializer_class(instance, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
+        publish('page_updated', serializer.data)
 
         return Response(serializer.data)
 
@@ -61,12 +64,15 @@ class PostViewSet(PermissionMixin):
         for i in email:
             send_plain_email.delay(owner=self.request.user.email, email=i.owner.email)
         serializer.save(page=self.request.user.pages.first())
+        publish('post_created', serializer.data)
 
     def partial_update(self, request, *args, **kwargs):
         instance = self.queryset.get(pk=kwargs.get('pk'))
         serializer = self.serializer_class(instance, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
+        publish('post_updated', serializer.data)
+
         return Response(serializer.data)
 
 
@@ -75,6 +81,7 @@ class RepliesViewSet(PermissionMixin):
     queryset = Reply.objects.all()
 
     def perform_create(self, serializer):
+        print(self.request.user)
         serializer.save(owner=self.request.user)
 
 

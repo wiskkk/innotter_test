@@ -1,9 +1,8 @@
 import uuid
-from rest_framework import serializers
-
-from mainapp.models import Page, Post, Reply, Tag
 
 from django.contrib.auth import get_user_model
+from mainapp.models import Page, Post, Reply, Tag
+from rest_framework import serializers
 
 User = get_user_model()
 
@@ -46,7 +45,7 @@ class PageSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Page
-        exclude = ('unblock_date',)
+        exclude = ('unblock_date', 'created_date')
 
     def to_internal_value(self, data):
         for tag_name in data.get('tags', []):
@@ -83,7 +82,7 @@ class PostSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Post
-        fields = ('id', 'owner', 'page', 'content', 'replies', 'like', 'updated_at')
+        fields = ('id', 'owner', 'page', 'content', 'replies', 'like')
 
 
 class PostLikeListSerializer(serializers.ModelSerializer):

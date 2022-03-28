@@ -1,5 +1,7 @@
 import os
+
 import boto3
+
 from innotter.celery import app
 
 client = boto3.client(
