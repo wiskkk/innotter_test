@@ -1,9 +1,8 @@
 from django.urls.conf import include, path
-from rest_framework.routers import DefaultRouter
-
 from mainapp.views import (FollowUnfollowViewSet, LikeUnlikeViewSet, NewsView,
                            PageViewSet, PostViewSet, RepliesViewSet,
                            TagViewSet)
+from rest_framework.routers import DefaultRouter
 
 router = DefaultRouter()
 router.register(r'pages', PageViewSet, basename='page')

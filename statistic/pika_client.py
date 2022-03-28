@@ -1,4 +1,5 @@
 import json
+import os
 
 import pika
 from aio_pika import connect_robust
@@ -9,7 +10,7 @@ class PikaClient:
     def __init__(self, process_callable):
         self.publish_queue_name = 'PUBLISH_QUEUE'
         self.connection = pika.BlockingConnection(
-            pika.URLParameters('amqps://rtmsnwel:5SH5XtlcRwDYNCUYp9O7q3KIAiPqJKbJ@rat.rmq2.cloudamqp.com/rtmsnwel')
+            pika.URLParameters(os.environ.get("URL_PARAMS"))
         )
         self.channel = self.connection.channel()
         self.publish_queue = self.channel.queue_declare(queue=self.publish_queue_name)
@@ -21,7 +22,7 @@ class PikaClient:
     async def consume(self, loop):
         """Setup message listener with the current running loop"""
         connection = await connect_robust(
-            'amqps://rtmsnwel:5SH5XtlcRwDYNCUYp9O7q3KIAiPqJKbJ@rat.rmq2.cloudamqp.com/rtmsnwel',
+            os.environ.get("URL_PARAMS"),
             loop=loop)
         channel = await connection.channel()
         queue = await channel.declare_queue('CONSUME_QUEUE')

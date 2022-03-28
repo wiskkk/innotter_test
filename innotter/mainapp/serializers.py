@@ -1,9 +1,8 @@
 import uuid
 
 from django.contrib.auth import get_user_model
-from rest_framework import serializers
-
 from mainapp.models import Page, Post, Reply, Tag
+from rest_framework import serializers
 
 User = get_user_model()
 

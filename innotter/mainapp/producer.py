@@ -1,8 +1,9 @@
 import json
+import os
 
 import pika
 
-conn_params = pika.URLParameters('amqps://rtmsnwel:5SH5XtlcRwDYNCUYp9O7q3KIAiPqJKbJ@rat.rmq2.cloudamqp.com/rtmsnwel')
+conn_params = pika.URLParameters(os.environ.get("URL_PARAMS"))
 connection = pika.BlockingConnection(conn_params)
 channel = connection.channel()
 
