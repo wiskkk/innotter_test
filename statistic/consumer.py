@@ -1,43 +1,82 @@
 import json
 import sys
 import traceback
-
+import boto3
 import pika
-
-# from .models import Page
-import mainapp.models
 
 conn_params = pika.URLParameters('amqps://rtmsnwel:5SH5XtlcRwDYNCUYp9O7q3KIAiPqJKbJ@rat.rmq2.cloudamqp.com/rtmsnwel')
 connection = pika.BlockingConnection(conn_params)
-# connection = pika.BlockingConnection(pika.URLParameters("amqp://guest:guest@rabbitmq/"))
 channel = connection.channel()
-
+print('consumer start')
 channel.queue_declare(queue='statistics')
 
 
-def callback(ch, method, properties, body):
+def callback(ch, methods, properties, body):
     print('received in statistics')
-    print(body)
     data = json.loads(body)
-    print(data)
-    print(type(data))
 
     if properties.content_type == 'page_created':
-        page = mainapp.models.Post(name=data['name'], posts=data['posts'], followers=data['followers'],
-                                   following=['following'], follow_requests=data['follow_requests'])
-        print()
-        page.save()
-        print('page created')
+        dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
+        table = dynamodb.Table('page_stat')
+
+        response = table.put_item(
+            Item=json.loads(body.decode('utf-8'))
+        )
+        print('page_created')
+        print(response)
+    elif properties.content_type == 'page_updated':
+        body = json.loads(body.decode('utf-8'))
+        dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
+        table = dynamodb.Table('page_stat')
+
+        id = data['id']
+        response = table.update_item(
+            Key={
+                'page_id': id,
+            },
+            UpdateExpression="set page_owner=:o, page_name=:n, followers=:fs, following=:fg, follow_requests=:fr",
+            ExpressionAttributeValues={
+                ':o': body['owner'],
+                ':n': body['name'],
+                ':fs': body['followers'],
+                ':fg': body['following'],
+                ':fr': body['follow_requests'],
+            },
+            ReturnValues="UPDATED_NEW"
+        )
+        print('page updated')
+        print(response)
     elif properties.content_type == 'post_created':
-        post = mainapp.models.Post(name=data['name'], content=data['content'], like=data['like'], replies=['replies'])
-        print(post)
-        post.save()
+        dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
+        table = dynamodb.Table('post_stat')
+
+        response = table.put_item(
+            Item=json.loads(body.decode('utf-8'))
+        )
         print('post created')
+        print(response)
+
     elif properties.content_type == 'post_updated':
-        post = mainapp.models.Post(name=data['name'], content=data['content'], like=data['like'], replies=['replies'])
-        post.save()
-        print(post)
-        print('post created')
+        body = json.loads(body.decode('utf-8'))
+        dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
+        table = dynamodb.Table('post_stat')
+
+        id = data['id']
+        response = table.update_item(
+            Key={
+                'id': id,
+            },
+            UpdateExpression="set page=:p, content=:c, replies=:r, likes=:l",
+            ExpressionAttributeValues={
+                ':p': body['page'],
+                ':c': body['content'],
+                ':r': body['replies'],
+                ':l': body['like'],
+            },
+            ReturnValues="UPDATED_NEW"
+        )
+        print('post updated')
+        print(response)
 
 
 channel.basic_consume(queue='statistics', on_message_callback=callback, auto_ack=True)
@@ -52,7 +91,5 @@ except KeyboardInterrupt:
 except Exception:
     channel.stop_consuming()
     traceback.print_exc(file=sys.stdout)
-
-# channel.start_consuming()
 
 channel.close()

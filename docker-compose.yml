@@ -14,6 +14,7 @@ services:
     depends_on:
       - db
       - redis
+
   db:
     image: postgres:13.0-alpine
     volumes:
@@ -36,23 +37,21 @@ services:
       - web
       - celery
       - db
+
   redis:
     image: redis:alpine
+
   celery:
     build: ./innotter
     restart: always
     command: celery -A app.celery worker --pool=solo --loglevel=info  # celery -A innotter worker -l info
     volumes:
       - ./innotter:/innotter
-#    environment:
-#      - POSTGRES_USER=innotter
-#      - POSTGRES_PASSWORD=innotter
-#      - POSTGRES_DB=innotter_dev
     env_file:
       - ./.env
     depends_on:
       - redis
-#      - db
-#      - web
+      - db
+
 volumes:
   postgres_data:

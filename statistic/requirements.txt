@@ -1,0 +1,13 @@
+Django==4.0.3
+djangorestframework==3.13.1
+env==0.1.0
+environs==9.5.0
+isort==5.10.1
+python-dotenv==0.19.2
+boto3==1.21.23
+django-filter==21.1
+uuid==1.30
+fastapi==0.75.0
+pydantic==1.9.0
+starlette==0.17.1
+pika==1.2.0

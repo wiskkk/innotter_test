@@ -81,6 +81,7 @@ class RepliesViewSet(PermissionMixin):
     queryset = Reply.objects.all()
 
     def perform_create(self, serializer):
+        print(self.request.user)
         serializer.save(owner=self.request.user)
 
 
