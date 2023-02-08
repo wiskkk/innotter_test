@@ -7,6 +7,18 @@ name = "pypi"
 django = "*"
 djangorestframework = "*"
 python-dotenv = "*"
+isort = "*"
+env = "*"
+environs = "*"
+djangorestframework-simplejwt = "*"
+djoser = "*"
+django-storages = "*"
+redis = "==4.1.2"
+boto3 = "*"
+celery = "==4.4.7"
+uuid = "*"
+django-filter = "*"
+
 
 [dev-packages]
 
